@@ -1,0 +1,34 @@
+namespace: /radicle
+
+seed:
+  defines: runnable
+  containers:
+    defines: containers
+    seed:
+      image: gcr.io/monk-releases/radicle
+      image-tag: latest
+      bash: /root/run.sh
+      ports:
+        - <- `${http-port}:${http-port}`
+        - <- `${peer-port}:${peer-port}`
+  variables:
+    defines: variables
+    http-port: 80
+    peer-port: 12345
+    name: seedling-monk
+  files:
+    defines: files
+    run:
+      container: seed
+      mode: 0755
+      path: /root/run.sh
+      contents: |
+        mkdir -p /root/.radicle-seed
+        /usr/local/bin/radicle-keyutil --filename /root/.radicle-seed/secret.key
+        /usr/local/bin/radicle-seed-node \
+          --root /root/.radicle-seed \
+          --peer-listen 0.0.0.0:{{ v "peer-port" }} \
+          --http-listen 0.0.0.0:{{ v "http-port" }} \
+          --name "{{ v "name" }}" \
+          --assets-path /root/seed-ui/public \
+          < /root/.radicle-seed/secret.key
