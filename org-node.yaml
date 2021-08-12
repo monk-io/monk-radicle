@@ -1,0 +1,83 @@
+namespace: radicle
+
+org-node:
+  defines: runnable
+  containers:
+    defines: containers
+    node:
+      image: gcr.io/monk-releases/radicle-service/org-node
+      image-tag: latest
+      bash: /root/run.sh
+      ports: 
+        - <- `${node-port}:${node-port}`
+      paths: 
+        - <- `${radicle-home-path}:/app/radicle`
+      environment:
+        - <- `RUST_LOG:${loglevel}`
+      hooks:
+        container-started: import-identity
+    api:
+      image: gcr.io/monk-releases/radicle-service/http-api
+      image-tag: latest
+      bash: /root/run.sh
+      ports:
+        - <- `${api-port}:${api-port}`
+      paths:
+        - <- `${radicle-home-path}:/app/radicle`
+      environment:
+        - <- `RUST_LOG:${loglevel}`
+  files:
+    defines: files
+    identity:
+      container: node
+      mode: 0600
+      path: /root/radicle.secret.key.base64
+      contents: <- `${identity}`
+    identity-script:
+      container: node
+      mode: 0755
+      path: /root/identity.sh
+      contents: |
+        encoded=`cat /root/radicle.secret.key.base64`
+        if [ -z "$encoded" ]; then
+          radicle-keyutil --filename /root/radicle.secret.key
+        else
+          echo "$encoded" | base64 -d >/root/radicle.secret.key
+        fi
+    node:
+      container: node
+      mode: 0755
+      path: /root/run.sh
+      contents: |
+        /root/identity.sh
+        radicle-org-node \
+          --root /app/radicle \
+          --subgraph '{{ v "subgraph" }}' \
+          --orgs {{ v "orgs" }} \
+          --identity /root/radicle.secret.key \
+          --bootstrap '{{ v "bootstrap" }}' \
+          --listen 0.0.0.0:{{ v "node-port"}}
+    api:
+      container: api
+      mode: 0755
+      path: /root/run.sh
+      contents: |
+        sleep 10
+        radicle-http-api \
+          --root /app/radicle \
+          --no-color \
+          --listen 0.0.0.0:{{ v "api-port" }}
+  variables:
+    defines: variables
+    loglevel: "info"
+    node-port: 8776
+    api-port: 8777
+    radicle-home-path: 
+      type: string
+      value: <- `${monk-volume-path}/radicle`
+    subgraph: "https://api.thegraph.com/subgraphs/name/radicle-dev/radicle-orgs"
+    orgs: "0x5C70e249529e7D43f68E5c566e489937559f73E5"
+    bootstrap: "hynkyndc6w3p8urucakobzna7sxwgcqny7xxtw88dtx3pkf7m3nrzc@sprout.radicle.xyz:12345"
+    identity:
+      type: string
+      value: ""

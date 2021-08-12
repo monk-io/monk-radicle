@@ -1,2 +1,3 @@
 REPO monk-radicle
 LOAD radicle.yaml
+LOAD org-node.yaml
