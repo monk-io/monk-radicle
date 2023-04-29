@@ -1,28 +1,56 @@
-namespace: /radicle
+---
+namespace: radicle
 
 seed:
   defines: runnable
+  metadata:
+    name: radicle-seed
+    shortname: Radicle Seed
+    description: |
+      Radicle is a peer-to-peer code collaboration and version control platform built on a decentralized network.
+      It is designed to provide developers with a secure and transparent way to collaborate on code without relying on centralized services such as GitHub.
+      Radicle uses a novel approach to distributed version control, in which code changes are stored and propagated across a network of peers, rather than on a centralized server.
+      This allows developers to work together in a highly resilient and secure environment, without having to trust any single point of failure.
+      Radicle also provides features such as code review, issue tracking, and pull requests, making it a complete collaboration platform for decentralized development teams.
+      Overall, Radicle is a powerful and innovative tool for building decentralized and collaborative software projects.
+    tags: Peer-to-peer, Decentralized network, Code collaboration, Version control, Distributed version control, Code review, Issue tracking, Pull requests, Resilience, Security, Transparency, Open source, Innovation, Collaboration platform, Decentralized development teams,
+    website: https://radicle.xyz/
+    source: https://github.com/orgs/radicle-dev/
+    publisher: monk.io
+    icon: https://radicle.xyz/svg/radicle.svg
+    twitter: radicle
   containers:
-    defines: containers
     seed:
       image: gcr.io/monk-releases/radicle
       image-tag: latest
       bash: /root/run.sh
-      ports:
-        - <- `${http-port}:${http-port}`
-        - <- `${peer-port}:${peer-port}`
+  services:
+    http:
+      container: seed
+      port: <- `${http-port}`
+      protocol: tcp
+      host-port: <- `${http-port}`
+    peer:
+      container: seed
+      port: <- `${peer-port}`
+      protocol: tcp
+      host-port: <- `${peer-port}`
   variables:
-    defines: variables
-    http-port: 80
-    peer-port: 12345
-    name: seedling-monk
+    http-port:
+      type: string
+      value: 80
+    peer-port:
+      type: string
+      value: 12345
+    name:
+      type: string
+      value: seedling-monk
   files:
-    defines: files
     run:
       container: seed
       mode: 0755
       path: /root/run.sh
-      contents: |
+      contents: |-
         mkdir -p /root/.radicle-seed
         /usr/local/bin/radicle-keyutil --filename /root/.radicle-seed/secret.key
         /usr/local/bin/radicle-seed-node \

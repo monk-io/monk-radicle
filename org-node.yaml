@@ -1,33 +1,51 @@
+---
 namespace: radicle
 
 org-node:
   defines: runnable
+  metadata:
+    name: radicle-org-node
+    shortname: Radicle Node
+    description: |
+      Radicle is a peer-to-peer code collaboration and version control platform built on a decentralized network.
+      It is designed to provide developers with a secure and transparent way to collaborate on code without relying on centralized services such as GitHub.
+      Radicle uses a novel approach to distributed version control, in which code changes are stored and propagated across a network of peers, rather than on a centralized server.
+      This allows developers to work together in a highly resilient and secure environment, without having to trust any single point of failure.
+      Radicle also provides features such as code review, issue tracking, and pull requests, making it a complete collaboration platform for decentralized development teams.
+      Overall, Radicle is a powerful and innovative tool for building decentralized and collaborative software projects.
+    tags: Peer-to-peer, Decentralized network, Code collaboration, Version control, Distributed version control, Code review, Issue tracking, Pull requests, Resilience, Security, Transparency, Open source, Innovation, Collaboration platform, Decentralized development teams,
+    website: https://radicle.xyz/
+    source: https://github.com/orgs/radicle-dev/
+    publisher: monk.io
+    icon: https://radicle.xyz/svg/radicle.svg
+    twitter: radicle
   containers:
-    defines: containers
     node:
       image: gcr.io/monk-releases/radicle-service/org-node
       image-tag: latest
       bash: /root/run.sh
-      ports: 
-        - <- `${node-port}:${node-port}`
-      paths: 
-        - <- `${radicle-home-path}:/app/radicle`
-      environment:
-        - <- `RUST_LOG:${loglevel}`
+      paths:
+        - <- `${monk-volume-path}/radicle:/app/radicle`
       hooks:
         container-started: import-identity
     api:
       image: gcr.io/monk-releases/radicle-service/http-api
       image-tag: latest
       bash: /root/run.sh
-      ports:
-        - <- `${api-port}:${api-port}`
       paths:
-        - <- `${radicle-home-path}:/app/radicle`
-      environment:
-        - <- `RUST_LOG:${loglevel}`
+        - <- `${monk-volume-path}/radicle:/app/radicle`
+  services:
+    node:
+      container: node
+      port: <- `${node-port}`
+      protocol: tcp
+      host-port: <- `${node-port}`
+    api:
+      container: api
+      port: <- `${api-port}`
+      protocol: tcp
+      host-port: <- `${api-port}`
   files:
-    defines: files
     identity:
       container: node
       mode: 0600
@@ -68,16 +86,25 @@ org-node:
           --no-color \
           --listen 0.0.0.0:{{ v "api-port" }}
   variables:
-    defines: variables
-    loglevel: "info"
-    node-port: 8776
-    api-port: 8777
-    radicle-home-path: 
+    loglevel:
+      env: RUST_LOG
       type: string
-      value: <- `${monk-volume-path}/radicle`
-    subgraph: "https://api.thegraph.com/subgraphs/name/radicle-dev/radicle-orgs"
-    orgs: "0x5C70e249529e7D43f68E5c566e489937559f73E5"
-    bootstrap: "hynkyndc6w3p8urucakobzna7sxwgcqny7xxtw88dtx3pkf7m3nrzc@sprout.radicle.xyz:12345"
+      value: info
+    node-port:
+      type: string
+      value: 8776
+    api-port:
+      type: string
+      value: 8777
+    subgraph:
+      type: string
+      value: https://api.thegraph.com/subgraphs/name/radicle-dev/radicle-orgs
+    orgs:
+      type: string
+      value: '0x5C70e249529e7D43f68E5c566e489937559f73E5'
+    bootstrap:
+      type: string
+      value: hynkyndc6w3p8urucakobzna7sxwgcqny7xxtw88dtx3pkf7m3nrzc@sprout.radicle.xyz:12345
     identity:
       type: string
-      value: ""
+      value: ''
