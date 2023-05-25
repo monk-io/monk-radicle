@@ -13,7 +13,7 @@ seed:
       This allows developers to work together in a highly resilient and secure environment, without having to trust any single point of failure.
       Radicle also provides features such as code review, issue tracking, and pull requests, making it a complete collaboration platform for decentralized development teams.
       Overall, Radicle is a powerful and innovative tool for building decentralized and collaborative software projects.
-    tags: Peer-to-peer, Decentralized network, Code collaboration, Version control, Distributed version control, Code review, Issue tracking, Pull requests, Resilience, Security, Transparency, Open source, Innovation, Collaboration platform, Decentralized development teams,
+    tags: code review, distributed version control, peer-to-peer, transparency, resilience, innovation, security, pull requests, collaboration platform, code collaboration, open source, issue tracking, decentralized network
     website: https://radicle.xyz/
     source: https://github.com/orgs/radicle-dev/
     publisher: monk.io
